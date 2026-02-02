@@ -1,0 +1,6 @@
+{
+  "baseUrl": "https://gitlab.example.com",
+  "privateToken": "glpat-xxxxxxxxxxxxxxxxxxxx",
+  "timeout": 30000,
+  "description": "GitLab API proxy configuration. Copy this file to gitlab-config.json and update with your settings."
+}

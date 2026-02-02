@@ -44,6 +44,9 @@ export const TOOL_NAMES = {
     FLOW_RUN: 'record_replay_flow_run',
     LIST_PUBLISHED: 'record_replay_list_published',
   },
+  GITLAB: {
+    REQUEST: 'gitlab_request',
+  },
 };
 
 export const TOOL_SCHEMAS: Tool[] = [
@@ -1395,6 +1398,53 @@ export const TOOL_SCHEMAS: Tool[] = [
         },
       },
       required: ['action'],
+    },
+  },
+  {
+    name: TOOL_NAMES.GITLAB.REQUEST,
+    description: `Make HTTP requests to internal GitLab API. This is a generic proxy tool for accessing GitLab API endpoints.
+
+Common GitLab API Examples:
+- List projects: GET /api/v4/projects
+- Get project: GET /api/v4/projects/:id
+- List merge requests: GET /api/v4/projects/:id/merge_requests
+- Get merge request: GET /api/v4/projects/:id/merge_requests/:mr_iid
+- Get MR changes/diff: GET /api/v4/projects/:id/merge_requests/:mr_iid/changes
+- Get MR discussions: GET /api/v4/projects/:id/merge_requests/:mr_iid/discussions
+- Add MR comment: POST /api/v4/projects/:id/merge_requests/:mr_iid/notes
+- Approve MR: POST /api/v4/projects/:id/merge_requests/:mr_iid/approve
+- Merge MR: PUT /api/v4/projects/:id/merge_requests/:mr_iid/merge
+
+Note: Replace :id with project ID (numeric) or URL-encoded path (e.g., "group%2Fproject")
+      Replace :mr_iid with merge request IID (not ID!)
+
+GitLab API Documentation: https://docs.gitlab.com/ee/api/api_resources.html`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        method: {
+          type: 'string',
+          enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+          description: 'HTTP method',
+        },
+        path: {
+          type: 'string',
+          description: 'API path (e.g., /api/v4/projects). Should start with /api/v4/',
+        },
+        body: {
+          type: 'object',
+          description: 'Request body for POST/PUT/PATCH requests',
+        },
+        params: {
+          type: 'object',
+          description: 'Query parameters (e.g., {"state": "opened", "per_page": 20})',
+        },
+        headers: {
+          type: 'object',
+          description: 'Additional HTTP headers (optional)',
+        },
+      },
+      required: ['method', 'path'],
     },
   },
 ];

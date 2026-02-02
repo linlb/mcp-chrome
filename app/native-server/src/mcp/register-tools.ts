@@ -5,8 +5,9 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import nativeMessagingHostInstance from '../native-messaging-host';
-import { NativeMessageType, TOOL_SCHEMAS } from 'chrome-mcp-shared';
+import { NativeMessageType, TOOL_SCHEMAS, TOOL_NAMES } from 'chrome-mcp-shared';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { gitlabRequest, isGitLabConfigured } from '../gitlab';
 
 async function listDynamicFlowTools(): Promise<Tool[]> {
   try {
@@ -81,6 +82,70 @@ export const setupTools = (server: Server) => {
 
 const handleToolCall = async (name: string, args: any): Promise<CallToolResult> => {
   try {
+    // Handle GitLab request tool
+    if (name === TOOL_NAMES.GITLAB.REQUEST) {
+      if (!isGitLabConfigured()) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: 'GitLab is not configured. Please create gitlab-config.json with baseUrl and privateToken.',
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      try {
+        const response = await gitlabRequest({
+          method: args.method,
+          path: args.path,
+          body: args.body,
+          params: args.params,
+          headers: args.headers,
+        });
+
+        // Format response as text
+        let resultText = `GitLab API Response (${response.status}):\n\n`;
+
+        // Include relevant headers
+        if (response.headers['x-total']) {
+          resultText += `Total Results: ${response.headers['x-total']}\n`;
+        }
+        if (response.headers['x-total-pages']) {
+          resultText += `Total Pages: ${response.headers['x-total-pages']}\n`;
+        }
+        if (response.headers['x-page']) {
+          resultText += `Current Page: ${response.headers['x-page']}\n`;
+        }
+        if (response.headers['x-per-page']) {
+          resultText += `Per Page: ${response.headers['x-per-page']}\n`;
+        }
+
+        resultText += '\nResponse Data:\n';
+        resultText += JSON.stringify(response.data, null, 2);
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: resultText,
+            },
+          ],
+        };
+      } catch (error: any) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `GitLab request failed: ${error.message}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    }
+
     // If calling a dynamic flow tool (name starts with flow.), proxy to common flow-run tool
     if (name && name.startsWith('flow.')) {
       // We need to resolve flow by slug to ID
