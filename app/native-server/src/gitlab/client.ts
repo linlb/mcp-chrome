@@ -54,11 +54,14 @@ export async function gitlabRequest(options: GitLabRequestOptions): Promise<GitL
     ...options.headers,
   };
 
-  // Build request options
+  // Build request options with timeout using AbortController
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), config.timeout);
+
   const fetchOptions: any = {
     method: options.method,
     headers,
-    timeout: config.timeout,
+    signal: controller.signal,
   };
 
   // Add body for non-GET requests
@@ -70,7 +73,12 @@ export async function gitlabRequest(options: GitLabRequestOptions): Promise<GitL
   let response: Response;
   try {
     response = await fetch(url.toString(), fetchOptions);
+    clearTimeout(timeoutId);
   } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error(`GitLab request timeout after ${config.timeout}ms`);
+    }
     throw new Error(`GitLab request failed: ${error.message}`);
   }
 

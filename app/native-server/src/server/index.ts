@@ -28,7 +28,7 @@ import { AgentChatService } from '../agent/chat-service';
 import { CodexEngine } from '../agent/engines/codex';
 import { ClaudeEngine } from '../agent/engines/claude';
 import { closeDb } from '../agent/db';
-import { registerAgentRoutes } from './routes';
+import { registerAgentRoutes, registerGitLabProxyRoutes } from './routes';
 
 // ============================================================
 // Types
@@ -99,6 +99,9 @@ export class Server {
       streamManager: this.agentStreamManager,
       chatService: this.agentChatService,
     });
+
+    // GitLab git HTTP proxy (only registered if gitlab-config.json exists)
+    registerGitLabProxyRoutes(this.fastify);
 
     // MCP routes
     this.setupMcpRoutes();

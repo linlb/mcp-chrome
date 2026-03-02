@@ -1,8 +1,13 @@
-# GitLab API 代理使用指南
+# GitLab 代理使用指南
 
 ## 功能说明
 
-这个功能将 native-server 作为内网 GitLab 的 API 代理，让其他无法直接访问内网 GitLab 的机器可以通过 MCP 协议访问 GitLab API。
+native-server 提供两种 GitLab 代理能力，部署在有 GitLab 访问权限的机器上（如 10.10.4.161），局域网内其他机器通过它访问内网 GitLab：
+
+| 功能 | 路由 | 用途 |
+|------|------|------|
+| **MCP API 代理** | MCP Tool `gitlab_request` | 供 LLM 调用 GitLab REST API（代码审查、MR 操作等） |
+| **Git HTTP 代理** | `HTTP /git-proxy/*` | 供 git 命令执行 clone / pull / push |
 
 ## 配置步骤
 
@@ -37,7 +42,10 @@ cp gitlab-config.example.json gitlab-config.json
 
 1. 登录你的 GitLab
 2. 点击右上角头像 → Settings → Access Tokens
-3. 创建一个 Token，选择需要的权限（例如：`api`, `read_api`, `read_repository`）
+3. 创建一个 Token，选择需要的权限：
+   - 仅 API 代理：`api`, `read_api`
+   - 含 git 拉取：额外勾选 `read_repository`
+   - 含 git 推送：额外勾选 `write_repository`
 4. 复制生成的 Token 到配置文件中
 
 ### 4. 重启服务
@@ -47,6 +55,44 @@ npm run build
 # 或者如果是开发模式
 npm run dev
 ```
+
+## 使用 Git HTTP 代理
+
+配置完成并重启服务后，`/git-proxy/*` 路由自动开启。局域网内其他机器无需任何认证配置，直接用代理地址替换原 GitLab 地址即可。
+
+### 克隆仓库
+
+```bash
+# 原地址（其他机器无法访问）
+git clone http://gitlab-outer.myhexin.com/group/repo.git
+
+# 改用代理地址（SERVER_IP 替换为 native-server 所在机器的 IP）
+git clone http://SERVER_IP:12306/git-proxy/group/repo.git
+```
+
+### 修改已有仓库的 remote
+
+```bash
+git remote set-url origin http://SERVER_IP:12306/git-proxy/group/repo.git
+
+# 之后正常使用
+git pull
+git push
+```
+
+### 临时使用（不修改 remote）
+
+```bash
+git -c http.proxy='' pull http://SERVER_IP:12306/git-proxy/group/repo.git main
+```
+
+### 注意事项
+
+- 代理会统一使用 `gitlab-config.json` 中配置的 token 认证，所有人以同一身份操作 GitLab
+- git commit 的作者信息仍是本地 `git config user.name / user.email`，不受影响
+- push 是否成功取决于 token 是否有 `write_repository` 权限
+
+---
 
 ## 使用 MCP Tool
 
@@ -294,6 +340,21 @@ GitLab request failed: timeout
 1. 检查网络连接
 2. 检查 GitLab 服务是否正常
 3. 增加 `timeout` 配置值
+
+### 问题：git proxy 路由不存在（404）
+
+```
+fatal: repository 'http://SERVER_IP:12306/git-proxy/group/repo.git/' not found
+```
+
+**解决**：
+
+1. 检查 `gitlab-config.json` 是否存在（路由仅在配置存在时注册）
+2. 检查服务是否已重启（修改配置后需重新 build + 重启）
+
+### 问题：git push 被拒绝（403）
+
+**解决**：检查 `gitlab-config.json` 中 token 是否有 `write_repository` 权限
 
 ## 完整工作流示例
 
