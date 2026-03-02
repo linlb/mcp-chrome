@@ -64,7 +64,7 @@ npm run dev
 
 ```bash
 # 原地址（其他机器无法访问）
-git clone http://gitlab-outer.myhexin.com/group/repo.git
+git clone http://gitlab-outer.wttiao.com/group/repo.git
 
 # 改用代理地址（SERVER_IP 替换为 native-server 所在机器的 IP）
 git clone http://SERVER_IP:12306/git-proxy/group/repo.git

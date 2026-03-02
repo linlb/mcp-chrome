@@ -22,7 +22,7 @@ async function testGitLabAPI() {
   console.log(`   Base URL: ${config.baseUrl}\n`);
 
   // 从 URL 提取信息
-  // URL: http://gitlab-outer.myhexin.com/10jqka/cloud-software/f10/thsc-f10-biz/-/merge_requests/11
+  // URL: http://gitlab-outer.wttiao.com/10jqka/cloud-software/f10/thsc-f10-biz/-/merge_requests/11
   const projectPath = '10jqka/cloud-software/f10/thsc-f10-biz';
   const projectPathEncoded = encodeURIComponent(projectPath); // URL 编码
   const mrIid = 11;

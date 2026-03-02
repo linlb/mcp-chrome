@@ -81,7 +81,7 @@ pm2 logs mcp-chrome-bridge --err --lines 50
 ```bash
 # 测试能否直接访问 GitLab
 curl -H "PRIVATE-TOKEN: BsSwf7ze8b5jaxxp_NNz" \
-  "http://gitlab-outer.myhexin.com/api/v4/projects/10jqka%2Fcloud-software%2Ff10%2Fthsc-f10-biz/merge_requests/11"
+  "http://gitlab-outer.wttiao.com/api/v4/projects/10jqka%2Fcloud-software%2Ff10%2Fthsc-f10-biz/merge_requests/11"
 ```
 
 如果 curl 能正常返回数据，说明 GitLab 配置是对的。

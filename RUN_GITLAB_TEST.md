@@ -103,7 +103,7 @@ pm2 restart mcp-chrome-bridge  # 或 npm start
 cd /path/to/mcp-chrome/app/native-server
 cat > gitlab-config.json <<EOF
 {
-  "baseUrl": "http://gitlab-outer.myhexin.com",
+  "baseUrl": "http://gitlab-outer.wttiao.com",
   "privateToken": "BsSwf7ze8b5jaxxp_NNz",
   "timeout": 30000
 }
@@ -122,5 +122,5 @@ EOF
 
 **解决**: 在服务器上测试能否访问 GitLab
 ```bash
-curl -I http://gitlab-outer.myhexin.com
+curl -I http://gitlab-outer.wttiao.com
 ```
